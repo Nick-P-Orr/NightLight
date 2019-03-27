@@ -6,9 +6,10 @@ clc; close all; clear all;
 
 A = imread('Night_Sample1.png');
 B = imread('Night_Sample2.jpg');
+Z = imread('Night_Sample3.png');
 disp('test');
 
-ABlack = rgb2gray(A);
+ABlack = rgb2gray(Z);
 se1 = strel('square', 3);
 ABlack2 = imdilate(ABlack, se1);
 ABlack3 = imerode(ABlack, se1);
@@ -47,22 +48,20 @@ bgm = DL == 0;
 title('Watershed Ridge Lines)')
 gmag2 = imimposemin(gmag, bgm | fgm4);
 L = watershed(gmag2);
+imshow(L);
 
-M = containers.Map('KeyType','char','ValueType','any');
+M = containers.Map('KeyType','int32','ValueType','any');
 
 [wi, hi] = size(ABlack);
 
 for x = 1:wi
        for y = 1:hi
-          w = int2str(L(x,y));
-          M(w) = [];
-          M(w) = [M(w),ABlack(x,y)];
+          M(L(x,y)) = [];
+          M(L(x,y)) = [M(L(x,y)),ABlack(x,y)];
        end
 end
 
-disp(M.keys);
-disp(M.values);
-N = containers.Map('KeyType','char','ValueType','any');
+N = containers.Map('KeyType','int32','ValueType','any');
 
 for i = 1:M.length
     q = M.keys;
