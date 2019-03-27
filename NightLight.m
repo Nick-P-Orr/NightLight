@@ -55,14 +55,25 @@ end
 
 N = containers.Map('KeyType','char','ValueType','any');
 
-
-
+N('0') = 5;
+N('1') = 4;
 x=M.keys;
-for i = 1:x.length
-    disp(x(i));
+[xs1, xs2] = size(x);
+for i = 1:xs2
+    b = M.keys;
+    h = b(i);
+    h = char(h);
+    d = M(h);
+    N(h) = mean(d);
 end
 
-disp(N);
+for i = 1:xs2
+    b = M.keys;
+    h = b(i);
+    h = char(h);
+    disp(h)
+    disp(N(h))
+end
 
 %imshow(imdilate(edge(C),se1));
 
