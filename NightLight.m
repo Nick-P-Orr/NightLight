@@ -18,23 +18,16 @@ I = ABlack;
 gmag = imgradient(ABlack);
 L = watershed(gmag);
 Lrgb = label2rgb(L);
-title('Watershed Transform of Gradient Magnitude')
 se = strel('disk',20);
 Io = imopen(I,se);
-title('Opening')
 Ie = imerode(I,se);
 Iobr = imreconstruct(Ie,I);
-title('Opening-by-Reconstruction')
 Ioc = imclose(Io,se);
-title('Opening-Closing')
 Iobrd = imdilate(Iobr,se);
 Iobrcbr = imreconstruct(imcomplement(Iobrd),imcomplement(Iobr));
 Iobrcbr = imcomplement(Iobrcbr);
-title('Opening-Closing by Reconstruction')
 fgm = imregionalmax(Iobrcbr);
-title('Regional Maxima of Opening-Closing by Reconstruction')
 I2 = labeloverlay(I,fgm);
-title('Regional Maxima Superimposed on Original Image')
 se2 = strel(ones(5,5));
 fgm2 = imclose(fgm,se2);
 fgm3 = imerode(fgm2,se2);
@@ -60,16 +53,13 @@ for x = 1:wi
        end
 end
 
-disp(M.keys);
-disp(M.values);
 N = containers.Map('KeyType','char','ValueType','any');
 
-for i = 1:M.length
-    q = M.keys;
-    y = q(i);
-    disp(N.KeyType);
-    disp(q(i));
-    N(y(1)) = mean(M(i));
+
+
+x=M.keys;
+for i = 1:x.length
+    disp(x(i));
 end
 
 disp(N);
