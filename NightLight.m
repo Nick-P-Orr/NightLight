@@ -6,8 +6,6 @@ clc; close all; clear all;
 
 A = imread('Night_Sample1.png');
 B = imread('Night_Sample2.jpg');
-disp('test');
-
 ABlack = rgb2gray(A);
 se1 = strel('square', 3);
 ABlack2 = imdilate(ABlack, se1);
@@ -67,16 +65,29 @@ for i = 1:xs2
     N(h) = mean(d);
 end
 
-for i = 1:xs2
-    b = M.keys;
-    h = b(i);
-    h = char(h);
-    disp(h)
-    disp(N(h))
+[wi, hi] = size(ABlack);
+A = rgb2hsv(A);
+hueImage = A(:, :, 1);
+saturationImage = A(:, :, 2);
+valueImage = A(:, :, 3);
+for x = 1:wi
+	for y = 1:hi
+       num = L(x,y);
+       num = int2str(num);
+       num = N(num);
+       num = num/255;
+       pixel = valueImage(x,y);
+       pixel = pixel + (.3-num);
+       if pixel > 1
+           pixel = 1;
+       end
+       valueImage(x,y) = pixel;
+	end
 end
-
-%imshow(imdilate(edge(C),se1));
-
+disp(valueImage);
+A = cat(3, hueImage, saturationImage, valueImage);
+A = hsv2rgb(A);
+imshow(A);
 
 
 pause;
