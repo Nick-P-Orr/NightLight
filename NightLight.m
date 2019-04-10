@@ -3,97 +3,144 @@
 %Brendan Sileo, sileob@wit.edu
 
 clc; close all; clear all;
+simpleGUI;
 
-A = imread('Night_Sample1.png');
-B = imread('Night_Sample2.jpg');
-ABlack = rgb2gray(A);
-se1 = strel('square', 3);
-ABlack2 = imdilate(ABlack, se1);
-ABlack3 = imerode(ABlack, se1);
-C = ABlack2-ABlack3;
+function simpleGUI
+    hFig = figure('Visible','off', 'Menu','none', 'Name','Night Light', 'Resize','off', 'Position',[100 100 1050 600]);
+    movegui(hFig,'center')          %# Move the GUI to the center of the screen
 
-I = ABlack;
-gmag = imgradient(ABlack);
-L = watershed(gmag);
-Lrgb = label2rgb(L);
-se = strel('disk',20);
-Io = imopen(I,se);
-Ie = imerode(I,se);
-Iobr = imreconstruct(Ie,I);
-Ioc = imclose(Io,se);
-Iobrd = imdilate(Iobr,se);
-Iobrcbr = imreconstruct(imcomplement(Iobrd),imcomplement(Iobr));
-Iobrcbr = imcomplement(Iobrcbr);
-fgm = imregionalmax(Iobrcbr);
-I2 = labeloverlay(I,fgm);
-se2 = strel(ones(5,5));
-fgm2 = imclose(fgm,se2);
-fgm3 = imerode(fgm2,se2);
-fgm4 = bwareaopen(fgm3,20);
-I3 = labeloverlay(I,fgm4);
-bw = imbinarize(Iobrcbr);
-D = bwdist(bw);
-DL = watershed(D);
-bgm = DL == 0;
-title('Watershed Ridge Lines)')
-gmag2 = imimposemin(gmag, bgm | fgm4);
-L = watershed(gmag2);
+    hBtnGrp = uibuttongroup('Position',[0 0 0.3 1], 'Units','Normalized');
+    uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 150 70 30], 'String','Load Image', 'Tag','li')
+    uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 120 70 30], 'String','Quit', 'Tag','q')
 
-M = containers.Map('KeyType','char','ValueType','any');
+    uicontrol('Style','pushbutton', 'String','Choose', 'Position',[15  90 70 30], 'Callback',{@button_callback})
 
-[wi, hi] = size(ABlack);
+    set(hFig, 'Visible','on')        %# Make the GUI visible
 
-for x = 1:wi
-       for y = 1:hi
-          w = int2str(L(x,y));
-          M(w) = [];
-          M(w) = [M(w),ABlack(x,y)];
-       end
+    %# callback function
+    function button_callback(src,ev)
+        switch get(get(hBtnGrp,'SelectedObject'),'Tag')
+            case 'li', processImage();
+            case 'q',  return;
+        end
+    end
 end
 
-N = containers.Map('KeyType','char','ValueType','any');
+function processImage
+    name = uigetfile('*');
+    A = imread(name);
+    ABlack = rgb2gray(A);
+    
+    [wi, hi] = size(ABlack);
+    
+    A = rgb2hsv(A);
+    hueImage = A(:, :, 1);
+    saturationImage = A(:, :, 2);
+    valueImage = A(:, :, 3);
+    foundNonEdge = true;
+    while foundNonEdge == true
+        for x = 1:wi
+            for y = 1:hi
+                foundNonEdge = false;
+                if hueImage(x,y) == 0
+                    try
+                        adjValues = [];
+                        if hueImage(x+1,y) ~= 0
+                            adjValues = [adjValues, hueImage(x+1,y)];
+                        end
+                        if hueImage(x-1,y) ~= 0
+                            adjValues = [adjValues, hueImage(x-1,y)];
+                        end
+                        if hueImage(x-1,y-1) ~= 0
+                            adjValues = [adjValues, hueImage(x-1,y-1)];
+                        end
+                        if hueImage(x,y-1) ~= 0
+                            adjValues = [adjValues, hueImage(x,y-1)];
+                        end
+                        if hueImage(x-1,y+1) ~= 0
+                            adjValues = [adjValues, hueImage(x-1,y+1)];
+                        end
+                        if hueImage(x,y+1) ~= 0
+                            adjValues = [adjValues, hueImage(x,y+1)];
+                        end
+                        if hueImage(x+1,y+1) ~= 0
+                            adjValues = [adjValues, hueImage(x+1,y+1)];
+                        end
+                      
+                        newVal = mean(adjValues);
+                        if size(adjValues) ~= 0
+                            hueImage(x,y) = newVal;
+                        else
+                            foundNonEdge = true;
+                        end
+                    catch 
+                    end
+                end
+            end
+        end
+    end
+    foundNonEdge = true;
+    while foundNonEdge == true
+        for x = 1:wi
+            for y = 1:hi
+                foundNonEdge = false;
+                if saturationImage(x,y) == 0
+                    try
+                        adjValues = [];
+                        if saturationImage(x+1,y) ~= 0
+                            adjValues = [adjValues, saturationImage(x+1,y)];
+                        end
+                        if saturationImage(x-1,y) ~= 0
+                            adjValues = [adjValues, saturationImage(x-1,y)];
+                        end
+                        if saturationImage(x-1,y-1) ~= 0
+                            adjValues = [adjValues, saturationImage(x-1,y-1)];
+                        end
+                        if saturationImage(x,y-1) ~= 0
+                            adjValues = [adjValues, saturationImage(x,y-1)];
+                        end
+                        if saturationImage(x-1,y+1) ~= 0
+                            adjValues = [adjValues, saturationImage(x-1,y+1)];
+                        end
+                        if saturationImage(x,y+1) ~= 0
+                            adjValues = [adjValues, saturationImage(x,y+1)];
+                        end
+                        if saturationImage(x+1,y+1) ~= 0
+                            adjValues = [adjValues, saturationImage(x+1,y+1)];
+                        end
+                      
+                        newVal = mean(adjValues);
+                        if size(adjValues) ~= 0
+                            saturationImage(x,y) = newVal;
+                        else
+                            foundNonEdge = true;
+                        end
+                    catch 
+                    end
+                end
+            end
+        end
+    end
+    for x = 1:wi
+        for y = 1:hi
+           pixel = valueImage(x,y);
+           if pixel < .09
+               dist = 1-pixel;
+               pixel = pixel + (dist/4);
+               valueImage(x,y) = pixel;
+           end
+           
+        end
+    end
+    A = cat(3, hueImage, saturationImage, valueImage);
+    A = hsv2rgb(A);
+    imshow(A);
 
-N('0') = 5;
-N('1') = 4;
-x=M.keys;
-[xs1, xs2] = size(x);
-for i = 1:xs2
-    b = M.keys;
-    h = b(i);
-    h = char(h);
-    d = M(h);
-    N(h) = mean(d);
+
+    pause;
+    clc; close all; clear all;
 end
 
-[wi, hi] = size(ABlack);
-A = rgb2hsv(A);
-hueImage = A(:, :, 1);
-saturationImage = A(:, :, 2);
-valueImage = A(:, :, 3);
-for x = 1:wi
-	for y = 1:hi
-       num = L(x,y);
-       num = int2str(num);
-       num = N(num);
-       num = num/255;
-       pixel = valueImage(x,y);
-       pixel = pixel + (.3-num);
-       if pixel > 1
-           pixel = 1;
-       end
-       valueImage(x,y) = pixel;
-	end
-end
-disp(valueImage);
-A = cat(3, hueImage, saturationImage, valueImage);
-A = hsv2rgb(A);
-imshow(A);
-
-
-pause;
-clc; close all; clear all;
-
-% 
 % -Convert image to black and white
 % -Edge detection to pull different layers of scene
 % -Calculate average intensity of layers
