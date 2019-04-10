@@ -9,7 +9,7 @@ function simpleGUI
     hFig = figure('Visible','off', 'Menu','none', 'Name','Night Light', 'Resize','off', 'Position',[100 100 1050 600]);
     movegui(hFig,'center')          %# Move the GUI to the center of the screen
 
-    hBtnGrp = uibuttongroup('Position',[0 0 0.3 1], 'Units','Normalized');
+    hBtnGrp = uibuttongroup('Position',[0 0 0.1 1], 'Units','Normalized');
     uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 150 70 30], 'String','Load Image', 'Tag','s')
     uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 120 70 30], 'String','Web Cam', 'Tag','w')
     uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 90 70 30], 'String','Quit', 'Tag','q')
@@ -33,17 +33,19 @@ function camGUI
     hFig = figure('Visible','off', 'Menu','none', 'Name','Night Light', 'Resize','off', 'Position',[100 100 1050 600]);
     movegui(hFig,'center')          %# Move the GUI to the center of the screen
 
-    hBtnGrp = uibuttongroup('Position',[0 0 0.3 1], 'Units','Normalized');
+    hBtnGrp = uibuttongroup('Position',[0 0 0.1 1], 'Units','Normalized');
     uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 150 70 30], 'String','Take Picture', 'Tag','tp')
-
-    uicontrol('Style','pushbutton', 'String','Choose', 'Position',[15  90 70 30], 'Callback',{@button_callback})
+    uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 120 70 30], 'String','Preview Picture', 'Tag','pp')
+    
+    uicontrol('Style','pushbutton', 'String','Take Picture', 'Position',[15  90 70 30], 'Callback',{@button_callback})
 
     set(hFig, 'Visible','on')        %# Make the GUI visible
 
     %# callback function
     function button_callback(src,ev)
         switch get(get(hBtnGrp,'SelectedObject'),'Tag')
-            case 'tp', img = snapshot(cam);
+            case 'tp', takeImage;
+            case 'pp', previewImage;
         end
     end
 end
@@ -54,12 +56,23 @@ function selectImage
     processImage(selectedImage);
 end
 
-function webcamImage
-    cam = webcam;
-    camGUI;
-    preview(cam);
-    
+function takeImage
+    cam = webcam;  
+    img = snapshot(cam);
+    clear cam;
+    processImage(img);  
+end
 
+function previewImage
+    cam = webcam;  
+    preview(cam);
+    pause;
+    clear cam;
+    takeImage;
+end
+
+function webcamImage
+    camGUI;
 end
 
 function processImage(A) 
