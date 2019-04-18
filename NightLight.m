@@ -76,121 +76,87 @@ function webcamImage
 end
 
 function processImage(A) 
-    ABlack = rgb2gray(A);
-    
-    [wi, hi] = size(ABlack);
-    
-    A = rgb2hsv(A);
-    hueImage = A(:, :, 1);
-    saturationImage = A(:, :, 2);
-    valueImage = A(:, :, 3);
-    foundNonEdge = true;
-    while foundNonEdge == true
+    ABlack = rgb2gray(A); 
+    avg = mean2(ABlack);
+    if avg < 75
+        wavelength = 2.^(0:5) * 3;
+        orientation = 0:45:135;
+        g = gabor(wavelength,orientation);
+        gabormag = imgaborfilt(ABlack,g);
+        for i = 1:length(g)
+            sigma = 0.5*g(i).Wavelength;
+            gabormag(:,:,i) = imgaussfilt(gabormag(:,:,i),3*sigma); 
+        end
+        nrows = size(A,1);
+        ncols = size(A,2);
+        [X,Y] = meshgrid(1:ncols,1:nrows);
+        featureSet = cat(3,ABlack,gabormag,X,Y);
+        L = imsegkmeans(featureSet,5,'NormalizeInput',true);
+
+        seg1 = getSegment(A, 1, L);
+        seg2 = getSegment(A, 2, L);
+        seg3 = getSegment(A, 3, L);
+        seg4 = getSegment(A, 4, L);
+        seg5 = getSegment(A, 5, L);
+
+        final = seg1;
+        [wi, hi] = size(final);
+        hi = hi/3;
         for x = 1:wi
             for y = 1:hi
-                foundNonEdge = false;
-                if hueImage(x,y) == 0
-                    try
-                        adjValues = [];
-                        if hueImage(x+1,y) ~= 0
-                            adjValues = [adjValues, hueImage(x+1,y)];
-                        end
-                        if hueImage(x-1,y) ~= 0
-                            adjValues = [adjValues, hueImage(x-1,y)];
-                        end
-                        if hueImage(x-1,y-1) ~= 0
-                            adjValues = [adjValues, hueImage(x-1,y-1)];
-                        end
-                        if hueImage(x,y-1) ~= 0
-                            adjValues = [adjValues, hueImage(x,y-1)];
-                        end
-                        if hueImage(x-1,y+1) ~= 0
-                            adjValues = [adjValues, hueImage(x-1,y+1)];
-                        end
-                        if hueImage(x,y+1) ~= 0
-                            adjValues = [adjValues, hueImage(x,y+1)];
-                        end
-                        if hueImage(x+1,y+1) ~= 0
-                            adjValues = [adjValues, hueImage(x+1,y+1)];
-                        end
-                      
-                        newVal = mean(adjValues);
-                        if size(adjValues) ~= 0
-                            hueImage(x,y) = newVal;
-                        else
-                            foundNonEdge = true;
-                        end
-                    catch 
-                    end
+                if final(x,y,1) <= .13 && final(x,y,2) <= .13 && final(x,y,3) <= .13
+                   if seg2(x,y,1) > .13 || seg2(x,y,2) > .13 || seg2(x,y,3) > .13
+                       final(x,y,1) = seg2(x,y,1);
+                       final(x,y,2) = seg2(x,y,2);
+                       final(x,y,3) = seg2(x,y,3);
+                   end
+                   if seg3(x,y,1) > .13 || seg3(x,y,2) > .13 || seg3(x,y,3) > .13
+                       final(x,y,1) = seg3(x,y,1);
+                       final(x,y,2) = seg3(x,y,2);
+                       final(x,y,3) = seg3(x,y,3);
+                   end
+                   if seg4(x,y,1) > .13 || seg4(x,y,2) > .13 || seg4(x,y,3) > .13
+                       final(x,y,1) = seg4(x,y,1);
+                       final(x,y,2) = seg4(x,y,2);
+                       final(x,y,3) = seg4(x,y,3);
+                   end
+                   if seg5(x,y,1) > .13 || seg5(x,y,2) > .13 || seg5(x,y,3) > .13
+                       final(x,y,1) = seg5(x,y,1);
+                       final(x,y,2) = seg5(x,y,2);
+                       final(x,y,3) = seg5(x,y,3);
+                   end
                 end
             end
         end
+    else
+        final = lin2rgb(A);
     end
-    foundNonEdge = true;
-    while foundNonEdge == true
-        for x = 1:wi
-            for y = 1:hi
-                foundNonEdge = false;
-                if saturationImage(x,y) == 0
-                    try
-                        adjValues = [];
-                        if saturationImage(x+1,y) ~= 0
-                            adjValues = [adjValues, saturationImage(x+1,y)];
-                        end
-                        if saturationImage(x-1,y) ~= 0
-                            adjValues = [adjValues, saturationImage(x-1,y)];
-                        end
-                        if saturationImage(x-1,y-1) ~= 0
-                            adjValues = [adjValues, saturationImage(x-1,y-1)];
-                        end
-                        if saturationImage(x,y-1) ~= 0
-                            adjValues = [adjValues, saturationImage(x,y-1)];
-                        end
-                        if saturationImage(x-1,y+1) ~= 0
-                            adjValues = [adjValues, saturationImage(x-1,y+1)];
-                        end
-                        if saturationImage(x,y+1) ~= 0
-                            adjValues = [adjValues, saturationImage(x,y+1)];
-                        end
-                        if saturationImage(x+1,y+1) ~= 0
-                            adjValues = [adjValues, saturationImage(x+1,y+1)];
-                        end
-                      
-                        newVal = mean(adjValues);
-                        if size(adjValues) ~= 0
-                            saturationImage(x,y) = newVal;
-                        else
-                            foundNonEdge = true;
-                        end
-                    catch 
-                    end
-                end
-            end
-        end
-    end
-    for x = 1:wi
-        for y = 1:hi
-           pixel = valueImage(x,y);
-           if pixel < .09
-               dist = 1-pixel;
-               pixel = pixel + (dist/4);
-               valueImage(x,y) = pixel;
-           end
-           
-        end
-    end
-    A = cat(3, hueImage, saturationImage, valueImage);
-    A = hsv2rgb(A);
-    imshow(A);
-
-
+        
+  
+    imshow(final);
     pause;
-    clc; close all; clear all;
+    clc; close all;
 end
 
-% -Convert image to black and white
-% -Edge detection to pull different layers of scene
-% -Calculate average intensity of layers
-% -Compare intensities of each layer
-% -Use gamma + white balance correction to brighten each layer of color image
-% -Recombine layers
+function [output] = getSegment(A, i, L)
+%     L = imsegkmeans(ABlack,5);
+    [rows, cols] = find(L~=i);
+%     indices = find(L=1);
+%     L(indices) = NaN;
+    [w,~] = size(rows);
+    for i = 1:w
+        x = rows(i);
+        y = cols(i);
+        A(x,y, 1) = 0;
+        A(x,y, 2) = 0;
+        A(x,y, 3) = 0;
+    end
+%     B = labeloverlay(ABlack,L);
+    HSV = rgb2hsv(A);
+    Heq = adapthisteq(HSV(:,:,3));
+    HSV_mod = HSV;
+    HSV_mod(:,:,3) = Heq;
+    A = hsv2rgb(HSV_mod);
+    A = lin2rgb(A);
+    output = A;
+end
