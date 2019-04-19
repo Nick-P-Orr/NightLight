@@ -10,9 +10,8 @@ function simpleGUI
     movegui(hFig,'center')          %# Move the GUI to the center of the screen
 
     hBtnGrp = uibuttongroup('Position',[0 0 0.1 1], 'Units','Normalized');
-    uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 150 70 30], 'String','Load Image', 'Tag','s')
+    uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 150 70 30], 'String','Load', 'Tag','s')
     uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 120 70 30], 'String','Web Cam', 'Tag','w')
-    uicontrol('Style','Radio', 'Parent',hBtnGrp, 'HandleVisibility','off', 'Position',[15 90 70 30], 'String','Quit', 'Tag','q')
     
 
     uicontrol('Style','pushbutton', 'String','Choose', 'Position',[15  60 70 30], 'Callback',{@button_callback})
@@ -24,7 +23,6 @@ function simpleGUI
         switch get(get(hBtnGrp,'SelectedObject'),'Tag')
             case 'w', webcamImage();
             case 's', selectImage();
-            case 'q',  return;
         end
     end
 end
